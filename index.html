@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMI Luxe Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-bg"></div>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand-mark">CREDit Luxe</div>
+      <div class="loan-type">
+        <label for="loanType">Loan Type</label>
+        <select id="loanType" class="fancy-select">
+          <option value="personal">Personal Loan</option>
+          <option value="home">Home Loan</option>
+          <option value="car">Car Loan</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-section">
+        <div class="hero-card glass">
+          <div class="hero-label">EMI</div>
+          <div class="hero-amount" id="emiValue">₹16,607 <span>/ month</span></div>
+          <p class="microcopy">Your monthly EMI</p>
+        </div>
+        <div class="cta-group">
+          <button id="calculateBtn" class="btn btn-primary">Calculate</button>
+          <div class="secondary-ctas desktop-only">
+            <button class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v2H3zm3 6h12v2H6zm-3 6h18v2H3z"/></svg>
+              Details
+            </button>
+            <button class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5zm7-16L5.33 17h13.34z"/></svg>
+              Export
+            </button>
+            <button class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.03-.47-.09-.7l7.02-4.11A2.99 2.99 0 0 0 18 7.91a3 3 0 1 0-2.99-3.34L7.91 8.67a3 3 0 1 0 0 6.66l7.12 4.16A3 3 0 1 0 18 16.08"/></svg>
+              Share
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section glass">
+        <form id="calculatorForm" novalidate>
+          <div class="field">
+            <label for="loanAmountRange">Loan Amount (₹)</label>
+            <div class="field-body">
+              <input type="range" id="loanAmountRange" min="50000" max="10000000" step="5000" value="1000000" />
+              <div class="input-visual">
+                <span>₹</span>
+                <input type="number" id="loanAmountInput" min="50000" max="10000000" step="5000" value="1000000" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="tenureRange">Tenure</label>
+            <div class="field-body">
+              <input type="range" id="tenureRange" min="6" max="360" step="1" value="60" />
+              <div class="inline-group">
+                <input type="number" id="tenureInput" min="6" max="360" step="1" value="60" />
+                <select id="tenureUnit" class="fancy-select">
+                  <option value="months" selected>Months</option>
+                  <option value="years">Years</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="roiInput">ROI (% p.a.)</label>
+            <div class="field-body">
+              <div class="input-visual">
+                <input type="number" id="roiInput" min="1" max="24" step="0.01" value="10.5" />
+                <span>%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="processingFeeInput">Processing Fee</label>
+            <div class="field-body column">
+              <div class="toggle-group" role="group" aria-label="Processing fee type">
+                <button type="button" class="toggle active" data-mode="flat">Flat fee (₹)</button>
+                <button type="button" class="toggle" data-mode="percent">% of loan</button>
+              </div>
+              <div class="input-visual">
+                <span id="processingSymbol">₹</span>
+                <input type="number" id="processingFeeInput" min="0" step="0.1" value="1999" />
+              </div>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="results-section">
+        <div class="result-card glass">
+          <h3>Total Payable</h3>
+          <p class="microcopy">What you’ll repay in total</p>
+          <div class="result-value" id="totalPayableValue">₹0</div>
+        </div>
+        <div class="result-card glass compact">
+          <h3>Total Interest</h3>
+          <p class="microcopy">Extra you’ll pay</p>
+          <div class="result-value" id="totalInterestValue">₹0</div>
+        </div>
+        <div class="result-card glass compact">
+          <h3>Processing Fee</h3>
+          <p class="microcopy">One-time processing fee</p>
+          <div class="result-value" id="processingFeeValue">₹0</div>
+        </div>
+      </section>
+
+      <section class="charts-section">
+        <div class="chart-card glass">
+          <div class="chart-header">
+            <h3>Principal vs Interest</h3>
+            <p class="microcopy">Breakdown of your repayment</p>
+          </div>
+          <canvas id="breakdownChart" aria-label="Principal and interest distribution" role="img"></canvas>
+        </div>
+        <div class="chart-card glass">
+          <div class="chart-header">
+            <h3>36-Month Trend</h3>
+            <p class="microcopy">Monthly principal vs interest</p>
+          </div>
+          <canvas id="trendChart" aria-label="Principal and interest trend" role="img"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="sticky-ctas mobile-only">
+    <button class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v2H3zm3 6h12v2H6zm-3 6h18v2H3z"/></svg>
+      Details
+    </button>
+    <button class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5zm7-16L5.33 17h13.34z"/></svg>
+      Export
+    </button>
+    <button class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.03-.47-.09-.7l7.02-4.11A2.99 2.99 0 0 0 18 7.91a3 3 0 1 0-2.99-3.34L7.91 8.67a3 3 0 1 0 0 6.66l7.12 4.16A3 3 0 1 0 18 16.08"/></svg>
+      Share
+    </button>
+  </div>
+</body>
+</html>
