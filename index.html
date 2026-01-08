@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India In-Hand Salary Calculator | CTC to Take-Home Calculator</title>
+    <meta name="description" content="Calculate your in-hand salary from CTC with accurate tax calculations for both Old and New Tax Regime. Compare offers, calculate salary hikes, and export detailed salary reports.">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <span class="sun">☀️</span>
+            <span class="moon">🌙</span>
+        </button>
+    </div>
+
+    <header>
+        <div class="container">
+            <h1>🇮🇳 India In-Hand Salary Calculator</h1>
+            <p class="subtitle">Calculate your take-home salary from CTC with accurate tax calculations (FY 2025-26)</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="basic">Basic Calculator</button>
+            <button class="tab-btn" data-tab="advanced">Advanced Mode</button>
+            <button class="tab-btn" data-tab="hike">Hike Calculator</button>
+            <button class="tab-btn" data-tab="compare">Compare Offers</button>
+            <button class="tab-btn" data-tab="reverse">Reverse Calculator</button>
+        </div>
+
+        <!-- Basic Calculator Tab -->
+        <div id="basic-tab" class="tab-content active">
+            <div class="calculator-grid">
+                <!-- Input Section -->
+                <div class="input-section">
+                    <h2>Salary Details</h2>
+
+                    <div class="form-group">
+                        <label for="annualCTC">
+                            Annual CTC (₹)
+                            <span class="tooltip" data-tooltip="Total Cost to Company - your complete salary package including all benefits">ℹ️</span>
+                        </label>
+                        <input type="number" id="annualCTC" placeholder="e.g., 1200000" value="1200000" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Basic Salary
+                            <span class="tooltip" data-tooltip="Typically 40-50% of CTC. This forms the base for PF and other calculations">ℹ️</span>
+                        </label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="basicType" value="percentage" checked>
+                                Percentage of CTC
+                            </label>
+                            <label>
+                                <input type="radio" name="basicType" value="absolute">
+                                Absolute Value
+                            </label>
+                        </div>
+                        <input type="number" id="basicPercentage" placeholder="40" value="40" min="0" max="100">
+                        <input type="number" id="basicAbsolute" placeholder="480000" style="display:none;" min="0">
+                        <small id="basicWarning" class="warning" style="display:none;">⚠️ Basic salary should typically be 35-60% of CTC</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="variablePay">
+                            Variable Pay / Bonus (₹)
+                            <span class="tooltip" data-tooltip="Performance bonus or variable component of your salary">ℹ️</span>
+                        </label>
+                        <input type="number" id="variablePay" placeholder="0" value="0" min="0">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="includeVariableMonthly">
+                            Include in monthly calculation
+                        </label>
+                    </div>
+
+                    <h3>Location & Employment Details</h3>
+
+                    <div class="form-group">
+                        <label for="cityType">
+                            City Type
+                            <span class="tooltip" data-tooltip="Metro cities (Delhi, Mumbai, Chennai, Kolkata) have higher HRA exemption">ℹ️</span>
+                        </label>
+                        <select id="cityType">
+                            <option value="metro">Metro (Delhi, Mumbai, Chennai, Kolkata)</option>
+                            <option value="non-metro">Non-Metro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state">
+                            State (for Professional Tax)
+                            <span class="tooltip" data-tooltip="Professional tax varies by state">ℹ️</span>
+                        </label>
+                        <select id="state">
+                            <option value="maharashtra">Maharashtra</option>
+                            <option value="karnataka">Karnataka</option>
+                            <option value="west-bengal">West Bengal</option>
+                            <option value="tamil-nadu">Tamil Nadu</option>
+                            <option value="telangana">Telangana</option>
+                            <option value="andhra-pradesh">Andhra Pradesh</option>
+                            <option value="gujarat">Gujarat</option>
+                            <option value="kerala">Kerala</option>
+                            <option value="madhya-pradesh">Madhya Pradesh</option>
+                            <option value="delhi">Delhi</option>
+                            <option value="uttar-pradesh">Uttar Pradesh</option>
+                            <option value="punjab">Punjab</option>
+                            <option value="haryana">Haryana</option>
+                            <option value="rajasthan">Rajasthan</option>
+                            <option value="other">Other (No PT)</option>
+                        </select>
+                    </div>
+
+                    <h3>Tax Regime Selection</h3>
+
+                    <div class="form-group">
+                        <div class="radio-group regime-selection">
+                            <label class="regime-card">
+                                <input type="radio" name="taxRegime" value="new" checked>
+                                <div class="regime-info">
+                                    <strong>New Tax Regime (FY 2025-26)</strong>
+                                    <small>Standard Deduction: ₹75,000 | Rebate up to ₹12L income</small>
+                                </div>
+                            </label>
+                            <label class="regime-card">
+                                <input type="radio" name="taxRegime" value="old">
+                                <div class="regime-info">
+                                    <strong>Old Tax Regime</strong>
+                                    <small>Allows deductions (80C, 80D, HRA, etc.) | Standard Deduction: ₹50,000</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Old Regime Deductions (shown only when old regime selected) -->
+                    <div id="oldRegimeDeductions" style="display:none;">
+                        <h3>Deductions (Old Regime)</h3>
+
+                        <div class="form-group">
+                            <label for="monthlyRent">
+                                Monthly Rent Paid (₹)
+                                <span class="tooltip" data-tooltip="For HRA exemption calculation">ℹ️</span>
+                            </label>
+                            <input type="number" id="monthlyRent" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="section80C">
+                                Section 80C Deductions (₹)
+                                <span class="tooltip" data-tooltip="EPF, PPF, ELSS, Life Insurance, Home Loan Principal (max ₹1,50,000)">ℹ️</span>
+                            </label>
+                            <input type="number" id="section80C" placeholder="0" value="0" min="0" max="150000">
+                            <small>Maximum: ₹1,50,000 (EPF contribution auto-added)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="section80D">
+                                Section 80D - Health Insurance (₹)
+                                <span class="tooltip" data-tooltip="Medical insurance premiums for self, family, and parents">ℹ️</span>
+                            </label>
+                            <input type="number" id="section80D" placeholder="0" value="0" min="0" max="100000">
+                            <small>Max: ₹25,000 (Self/Family) + ₹25,000 (Parents)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="section80CCD1B">
+                                Section 80CCD(1B) - NPS (₹)
+                                <span class="tooltip" data-tooltip="Additional NPS contribution (max ₹50,000)">ℹ️</span>
+                            </label>
+                            <input type="number" id="section80CCD1B" placeholder="0" value="0" min="0" max="50000">
+                            <small>Maximum: ₹50,000</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="homeLoanInterest">
+                                Section 24(b) - Home Loan Interest (₹)
+                                <span class="tooltip" data-tooltip="Interest on home loan for self-occupied property">ℹ️</span>
+                            </label>
+                            <input type="number" id="homeLoanInterest" placeholder="0" value="0" min="0" max="200000">
+                            <small>Maximum: ₹2,00,000 (self-occupied)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="otherDeductions">
+                                Other Deductions (₹)
+                                <span class="tooltip" data-tooltip="80E (Education Loan), 80G (Donations), 80TTA (Savings Interest), etc.">ℹ️</span>
+                            </label>
+                            <input type="number" id="otherDeductions" placeholder="0" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="calculateBtn" class="btn btn-primary">Calculate Salary</button>
+                        <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <h2>Your Salary Breakdown</h2>
+
+                    <div class="result-card highlight">
+                        <div class="result-label">Monthly In-Hand Salary</div>
+                        <div class="result-value" id="monthlyInHand">₹0</div>
+                    </div>
+
+                    <div class="result-card highlight">
+                        <div class="result-label">Annual Take-Home</div>
+                        <div class="result-value" id="annualTakeHome">₹0</div>
+                    </div>
+
+                    <div class="tabs-results">
+                        <button class="tab-result-btn active" data-tab="monthly">Monthly</button>
+                        <button class="tab-result-btn" data-tab="annual">Annual</button>
+                        <button class="tab-result-btn" data-tab="comparison">Regime Comparison</button>
+                    </div>
+
+                    <!-- Monthly Breakdown -->
+                    <div id="monthly-breakdown" class="result-breakdown active">
+                        <h3>Monthly Breakdown</h3>
+                        <div class="breakdown-table">
+                            <div class="breakdown-row header">
+                                <span>Component</span>
+                                <span>Amount (₹)</span>
+                            </div>
+                            <div class="breakdown-section">
+                                <div class="breakdown-row section-header">
+                                    <span>Earnings</span>
+                                    <span></span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Basic Salary</span>
+                                    <span id="monthlyBasic">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>HRA</span>
+                                    <span id="monthlyHRA">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Special Allowance</span>
+                                    <span id="monthlySpecial">0</span>
+                                </div>
+                                <div class="breakdown-row" id="monthlyVariableRow" style="display:none;">
+                                    <span>Variable Pay</span>
+                                    <span id="monthlyVariable">0</span>
+                                </div>
+                                <div class="breakdown-row total">
+                                    <span>Gross Monthly Salary</span>
+                                    <span id="grossMonthly">0</span>
+                                </div>
+                            </div>
+                            <div class="breakdown-section">
+                                <div class="breakdown-row section-header">
+                                    <span>Deductions</span>
+                                    <span></span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Employee PF</span>
+                                    <span id="monthlyPF">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Professional Tax</span>
+                                    <span id="monthlyPT">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Income Tax (TDS)</span>
+                                    <span id="monthlyTax">0</span>
+                                </div>
+                                <div class="breakdown-row" id="monthlyESIRow" style="display:none;">
+                                    <span>ESI (0.75%)</span>
+                                    <span id="monthlyESI">0</span>
+                                </div>
+                                <div class="breakdown-row total">
+                                    <span>Total Deductions</span>
+                                    <span id="totalMonthlyDeductions">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Annual Breakdown -->
+                    <div id="annual-breakdown" class="result-breakdown" style="display:none;">
+                        <h3>Annual Breakdown</h3>
+                        <div class="breakdown-table">
+                            <div class="breakdown-row header">
+                                <span>Component</span>
+                                <span>Amount (₹)</span>
+                            </div>
+                            <div class="breakdown-section">
+                                <div class="breakdown-row section-header">
+                                    <span>CTC Components</span>
+                                    <span></span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Annual CTC</span>
+                                    <span id="annualCTCDisplay">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>Basic Salary</span>
+                                    <span id="annualBasic">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>HRA</span>
+                                    <span id="annualHRA">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>Special Allowance</span>
+                                    <span id="annualSpecial">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>Variable Pay</span>
+                                    <span id="annualVariablePay">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>Employer PF (12%)</span>
+                                    <span id="annualEmployerPF">0</span>
+                                </div>
+                                <div class="breakdown-row indent">
+                                    <span>Gratuity (4.81%)</span>
+                                    <span id="annualGratuity">0</span>
+                                </div>
+                            </div>
+                            <div class="breakdown-section">
+                                <div class="breakdown-row section-header">
+                                    <span>Annual Deductions</span>
+                                    <span></span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Employee PF</span>
+                                    <span id="annualPF">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Professional Tax</span>
+                                    <span id="annualPT">0</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Income Tax</span>
+                                    <span id="annualTax">0</span>
+                                </div>
+                                <div class="breakdown-row total">
+                                    <span>Total Annual Deductions</span>
+                                    <span id="totalAnnualDeductions">0</span>
+                                </div>
+                            </div>
+                            <div class="breakdown-row highlight">
+                                <span><strong>Annual Take-Home</strong></span>
+                                <span id="annualTakeHomeDisplay">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regime Comparison -->
+                    <div id="comparison-breakdown" class="result-breakdown" style="display:none;">
+                        <h3>Tax Regime Comparison</h3>
+                        <div class="comparison-grid">
+                            <div class="comparison-card">
+                                <h4>New Tax Regime</h4>
+                                <div class="comparison-item">
+                                    <span>Taxable Income:</span>
+                                    <span id="newTaxableIncome">₹0</span>
+                                </div>
+                                <div class="comparison-item">
+                                    <span>Tax Payable:</span>
+                                    <span id="newTaxAmount">₹0</span>
+                                </div>
+                                <div class="comparison-item highlight">
+                                    <span><strong>Annual Take-Home:</strong></span>
+                                    <span id="newTakeHome">₹0</span>
+                                </div>
+                            </div>
+                            <div class="comparison-card">
+                                <h4>Old Tax Regime</h4>
+                                <div class="comparison-item">
+                                    <span>Taxable Income:</span>
+                                    <span id="oldTaxableIncome">₹0</span>
+                                </div>
+                                <div class="comparison-item">
+                                    <span>Tax Payable:</span>
+                                    <span id="oldTaxAmount">₹0</span>
+                                </div>
+                                <div class="comparison-item highlight">
+                                    <span><strong>Annual Take-Home:</strong></span>
+                                    <span id="oldTakeHome">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recommendation" id="regimeRecommendation">
+                            <!-- Dynamic recommendation will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="charts-section">
+                        <h3>Visual Breakdown</h3>
+                        <div class="chart-container">
+                            <canvas id="ctcBreakdownChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="deductionsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="export-section">
+                        <h3>Export & Share</h3>
+                        <div class="export-buttons">
+                            <button id="exportPDF" class="btn btn-secondary">📄 Download PDF Report</button>
+                            <button id="shareBtn" class="btn btn-secondary">📱 Share Results</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Mode Tab -->
+        <div id="advanced-tab" class="tab-content">
+            <div class="advanced-mode">
+                <h2>Advanced Salary Configuration</h2>
+                <p class="info-text">Fine-tune all components of your salary structure</p>
+
+                <div class="advanced-grid">
+                    <div class="advanced-section">
+                        <h3>Allowances</h3>
+
+                        <div class="form-group">
+                            <label>
+                                HRA Configuration
+                                <span class="tooltip" data-tooltip="House Rent Allowance">ℹ️</span>
+                            </label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="hraType" value="auto" checked>
+                                    Auto-calculate (50%/40% of Basic)
+                                </label>
+                                <label>
+                                    <input type="radio" name="hraType" value="manual">
+                                    Manual Amount
+                                </label>
+                            </div>
+                            <input type="number" id="hraManual" placeholder="Enter HRA amount" style="display:none;" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lta">
+                                LTA - Leave Travel Allowance (Annual ₹)
+                                <span class="tooltip" data-tooltip="Tax-exempt up to actual travel expenses">ℹ️</span>
+                            </label>
+                            <input type="number" id="lta" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="conveyance">
+                                Conveyance Allowance (Monthly ₹)
+                                <span class="tooltip" data-tooltip="Tax-free up to ₹1,600/month">ℹ️</span>
+                            </label>
+                            <input type="number" id="conveyance" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="medicalAllowance">
+                                Medical Allowance (Monthly ₹)
+                                <span class="tooltip" data-tooltip="Tax-free up to ₹1,250/month">ℹ️</span>
+                            </label>
+                            <input type="number" id="medicalAllowance" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="daAllowance">
+                                Dearness Allowance - DA (% of Basic)
+                                <span class="tooltip" data-tooltip="Primarily for government/PSU employees">ℹ️</span>
+                            </label>
+                            <input type="number" id="daAllowance" placeholder="0" value="0" min="0" max="100">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="otherAllowances">
+                                Other Allowances (Annual ₹)
+                            </label>
+                            <input type="number" id="otherAllowances" placeholder="0" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="advanced-section">
+                        <h3>Employer Contributions</h3>
+
+                        <div class="form-group">
+                            <label>
+                                Employer PF Contribution
+                                <span class="tooltip" data-tooltip="Part of CTC but not received in-hand">ℹ️</span>
+                            </label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="employerPFType" value="standard" checked>
+                                    12% of Basic (Standard)
+                                </label>
+                                <label>
+                                    <input type="radio" name="employerPFType" value="capped">
+                                    Capped at ₹1,800/month
+                                </label>
+                                <label>
+                                    <input type="radio" name="employerPFType" value="none">
+                                    Not Applicable
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="includeGratuity" checked>
+                                Include Gratuity in CTC (4.81% of Basic)
+                                <span class="tooltip" data-tooltip="Payable after 5 years of service">ℹ️</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="employerInsurance">
+                                Group Medical Insurance Premium (Annual ₹)
+                                <span class="tooltip" data-tooltip="Employer-paid health insurance">ℹ️</span>
+                            </label>
+                            <input type="number" id="employerInsurance" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="employerNPS">
+                                Employer NPS Contribution (% of Basic)
+                                <span class="tooltip" data-tooltip="National Pension System contribution">ℹ️</span>
+                            </label>
+                            <input type="number" id="employerNPS" placeholder="0" value="0" min="0" max="14">
+                        </div>
+                    </div>
+
+                    <div class="advanced-section">
+                        <h3>Additional Deductions</h3>
+
+                        <div class="form-group">
+                            <label>
+                                Employee PF Configuration
+                            </label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="employeePFType" value="full" checked>
+                                    12% of Full Basic
+                                </label>
+                                <label>
+                                    <input type="radio" name="employeePFType" value="capped">
+                                    Capped at ₹15,000 Basic
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vpf">
+                                Voluntary PF (VPF) - % of Basic
+                                <span class="tooltip" data-tooltip="Additional voluntary contribution to PF">ℹ️</span>
+                            </label>
+                            <input type="number" id="vpf" placeholder="0" value="0" min="0" max="100">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loanRepayment">
+                                Loan Repayment (Monthly ₹)
+                                <span class="tooltip" data-tooltip="Deducted from salary">ℹ️</span>
+                            </label>
+                            <input type="number" id="loanRepayment" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lwf">
+                                Labour Welfare Fund (Annual ₹)
+                            </label>
+                            <input type="number" id="lwf" placeholder="0" value="0" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="otherDeductionsAdv">
+                                Other Deductions (Monthly ₹)
+                            </label>
+                            <input type="number" id="otherDeductionsAdv" placeholder="0" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="applyAdvanced" class="btn btn-primary">Apply Advanced Settings</button>
+                    <button id="resetAdvanced" class="btn btn-secondary">Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hike Calculator Tab -->
+        <div id="hike-tab" class="tab-content">
+            <div class="hike-calculator">
+                <h2>Salary Hike Calculator</h2>
+                <p class="info-text">Calculate your new salary after a hike or appraisal</p>
+
+                <div class="hike-grid">
+                    <div class="hike-input">
+                        <h3>Current Salary</h3>
+                        <div class="form-group">
+                            <label for="currentCTC">Current Annual CTC (₹)</label>
+                            <input type="number" id="currentCTC" placeholder="1200000" value="1200000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="currentInHand">Current Monthly In-Hand (₹)</label>
+                            <input type="number" id="currentInHand" placeholder="75000" readonly>
+                        </div>
+                    </div>
+
+                    <div class="hike-input">
+                        <h3>Hike Details</h3>
+                        <div class="form-group">
+                            <label for="hikePercentage">Hike Percentage (%)</label>
+                            <input type="number" id="hikePercentage" placeholder="10" value="10" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>OR</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="hikeAbsolute">Absolute Hike Amount (₹)</label>
+                            <input type="number" id="hikeAbsolute" placeholder="120000" min="0">
+                        </div>
+                    </div>
+
+                    <div class="hike-results">
+                        <h3>After Hike</h3>
+                        <div class="result-card">
+                            <div class="result-label">New Annual CTC</div>
+                            <div class="result-value" id="newCTC">₹0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">New Monthly In-Hand</div>
+                            <div class="result-value" id="newInHand">₹0</div>
+                        </div>
+                        <div class="result-card highlight">
+                            <div class="result-label">Incremental Monthly Take-Home</div>
+                            <div class="result-value" id="incrementalInHand">₹0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateHike" class="btn btn-primary">Calculate Hike Impact</button>
+            </div>
+        </div>
+
+        <!-- Compare Offers Tab -->
+        <div id="compare-tab" class="tab-content">
+            <div class="compare-offers">
+                <h2>Compare Job Offers</h2>
+                <p class="info-text">Compare up to 3 different job offers side-by-side</p>
+
+                <div class="offers-grid">
+                    <div class="offer-card">
+                        <h3>Offer 1</h3>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="company1" placeholder="Company A">
+                        </div>
+                        <div class="form-group">
+                            <label>Annual CTC (₹)</label>
+                            <input type="number" id="offer1CTC" placeholder="1200000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Basic % of CTC</label>
+                            <input type="number" id="offer1Basic" placeholder="40" value="40" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Variable Pay (₹)</label>
+                            <input type="number" id="offer1Variable" placeholder="0" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>City Type</label>
+                            <select id="offer1City">
+                                <option value="metro">Metro</option>
+                                <option value="non-metro">Non-Metro</option>
+                            </select>
+                        </div>
+                        <div class="offer-result">
+                            <div class="result-label">Monthly In-Hand</div>
+                            <div class="result-value" id="offer1InHand">₹0</div>
+                        </div>
+                    </div>
+
+                    <div class="offer-card">
+                        <h3>Offer 2</h3>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="company2" placeholder="Company B">
+                        </div>
+                        <div class="form-group">
+                            <label>Annual CTC (₹)</label>
+                            <input type="number" id="offer2CTC" placeholder="1300000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Basic % of CTC</label>
+                            <input type="number" id="offer2Basic" placeholder="40" value="40" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Variable Pay (₹)</label>
+                            <input type="number" id="offer2Variable" placeholder="0" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>City Type</label>
+                            <select id="offer2City">
+                                <option value="metro">Metro</option>
+                                <option value="non-metro">Non-Metro</option>
+                            </select>
+                        </div>
+                        <div class="offer-result">
+                            <div class="result-label">Monthly In-Hand</div>
+                            <div class="result-value" id="offer2InHand">₹0</div>
+                        </div>
+                    </div>
+
+                    <div class="offer-card">
+                        <h3>Offer 3 (Optional)</h3>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="company3" placeholder="Company C">
+                        </div>
+                        <div class="form-group">
+                            <label>Annual CTC (₹)</label>
+                            <input type="number" id="offer3CTC" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Basic % of CTC</label>
+                            <input type="number" id="offer3Basic" placeholder="40" value="40" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Variable Pay (₹)</label>
+                            <input type="number" id="offer3Variable" placeholder="0" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>City Type</label>
+                            <select id="offer3City">
+                                <option value="metro">Metro</option>
+                                <option value="non-metro">Non-Metro</option>
+                            </select>
+                        </div>
+                        <div class="offer-result">
+                            <div class="result-label">Monthly In-Hand</div>
+                            <div class="result-value" id="offer3InHand">₹0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="compareOffers" class="btn btn-primary">Compare Offers</button>
+
+                <div id="comparisonResults" class="comparison-results" style="display:none;">
+                    <h3>Comparison Summary</h3>
+                    <div id="comparisonTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reverse Calculator Tab -->
+        <div id="reverse-tab" class="tab-content">
+            <div class="reverse-calculator">
+                <h2>Reverse Salary Calculator</h2>
+                <p class="info-text">Calculate the required CTC for your desired in-hand salary</p>
+
+                <div class="reverse-grid">
+                    <div class="reverse-input">
+                        <h3>Desired Salary</h3>
+                        <div class="form-group">
+                            <label for="desiredInHand">Desired Monthly In-Hand (₹)</label>
+                            <input type="number" id="desiredInHand" placeholder="75000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="reverseBasic">Basic % of CTC (Assumption)</label>
+                            <input type="number" id="reverseBasic" placeholder="40" value="40" min="35" max="60">
+                        </div>
+                        <div class="form-group">
+                            <label for="reverseCity">City Type</label>
+                            <select id="reverseCity">
+                                <option value="metro">Metro</option>
+                                <option value="non-metro">Non-Metro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reverseState">State</label>
+                            <select id="reverseState">
+                                <option value="maharashtra">Maharashtra</option>
+                                <option value="karnataka">Karnataka</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="reverse-results">
+                        <h3>Required Package</h3>
+                        <div class="result-card highlight">
+                            <div class="result-label">Required Annual CTC</div>
+                            <div class="result-value" id="requiredCTC">₹0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Approximate Monthly Gross</div>
+                            <div class="result-value" id="requiredGross">₹0</div>
+                        </div>
+                        <div class="breakdown-info">
+                            <h4>CTC Breakdown:</h4>
+                            <div class="breakdown-item">
+                                <span>Basic Salary:</span>
+                                <span id="reverseBasicAmount">₹0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>HRA:</span>
+                                <span id="reverseHRAAmount">₹0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>Other Components:</span>
+                                <span id="reverseOtherAmount">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateReverse" class="btn btn-primary">Calculate Required CTC</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 India In-Hand Salary Calculator | Tax calculations based on FY 2025-26 rules</p>
+            <p class="disclaimer">
+                <small>Disclaimer: This calculator provides approximate calculations. Actual in-hand salary may vary based on company policies, additional deductions, and tax exemptions. Please consult a tax professional for accurate advice.</small>
+            </p>
+            <p class="data-sources">
+                <small>Data sources: <a href="https://www.incometax.gov.in" target="_blank">Income Tax Department</a> |
+                <a href="https://www.epfindia.gov.in" target="_blank">EPFO</a> |
+                <a href="https://www.esic.in" target="_blank">ESIC</a></small>
+            </p>
+        </div>
+    </footer>
+
+    <script src="calculator.js"></script>
+</body>
+</html>
