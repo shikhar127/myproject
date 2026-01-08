@@ -153,6 +153,31 @@ india-salary-calculator/
 └── README.md          # Documentation
 ```
 
+## 📱 Install as Mobile App (PWA)
+
+**Good news!** This is a Progressive Web App - you can install it on your phone like a native app without needing an APK file!
+
+### Android Installation (Chrome):
+1. Open the website in Chrome browser
+2. Tap "Install" when prompted OR tap ⋮ menu → "Add to Home screen"
+3. Launch from home screen like any app!
+
+### iPhone Installation (Safari):
+1. Open the website in Safari
+2. Tap Share button → "Add to Home Screen"
+3. Done!
+
+**Features after installation:**
+- 📱 Home screen icon
+- 📴 Works offline
+- 🚀 Fast loading (cached)
+- 🔔 Full-screen mode
+- 🌙 Dark mode support
+
+📖 **Detailed installation guide:** See [INSTALL.md](INSTALL.md)
+
+---
+
 ## 🚀 Getting Started
 
 ### Option 1: Direct Usage

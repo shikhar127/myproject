@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate PWA Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .icons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .icon-item {
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <p>Click the button below to generate and download all required PWA icons</p>
+
+    <button onclick="generateAllIcons()">🎨 Generate All Icons</button>
+
+    <div class="instructions">
+        <h3>📝 Instructions:</h3>
+        <ol>
+            <li>Click the "Generate All Icons" button above</li>
+            <li>All icon sizes will be automatically generated and downloaded</li>
+            <li>Save all PNG files in the same folder as index.html</li>
+            <li>The app is now ready to be installed on mobile devices!</li>
+        </ol>
+    </div>
+
+    <div class="icons-container" id="iconsContainer"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2563eb');
+            gradient.addColorStop(1, '#1d4ed8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw rupee symbol
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.5}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('₹', size / 2, size / 2);
+
+            // Add calculator grid decoration
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = size * 0.02;
+
+            // Horizontal lines
+            for (let i = 1; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(size * 0.15, size * 0.2 + (i * size * 0.2));
+                ctx.lineTo(size * 0.85, size * 0.2 + (i * size * 0.2));
+                ctx.stroke();
+            }
+
+            // Vertical lines
+            for (let i = 1; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(size * 0.15 + (i * size * 0.35), size * 0.2);
+                ctx.lineTo(size * 0.15 + (i * size * 0.35), size * 0.8);
+                ctx.stroke();
+            }
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function generateAllIcons() {
+            const container = document.getElementById('iconsContainer');
+            container.innerHTML = '';
+
+            sizes.forEach(size => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+
+                const canvas = document.createElement('canvas');
+                drawIcon(canvas, size);
+
+                const label = document.createElement('p');
+                label.textContent = `${size}x${size}`;
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = `Download ${size}px`;
+                downloadBtn.onclick = () => downloadCanvas(canvas, `icon-${size}.png`);
+
+                iconItem.appendChild(canvas);
+                iconItem.appendChild(label);
+                iconItem.appendChild(downloadBtn);
+                container.appendChild(iconItem);
+
+                // Auto-download
+                setTimeout(() => {
+                    downloadCanvas(canvas, `icon-${size}.png`);
+                }, size); // Stagger downloads
+            });
+
+            alert(`✅ Generating ${sizes.length} icons! Check your downloads folder.`);
+        }
+
+        // Generate previews on load
+        window.onload = () => {
+            const container = document.getElementById('iconsContainer');
+            sizes.forEach(size => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+
+                const canvas = document.createElement('canvas');
+                canvas.style.maxWidth = '150px';
+                canvas.style.maxHeight = '150px';
+                drawIcon(canvas, size);
+
+                const label = document.createElement('p');
+                label.textContent = `${size}x${size}`;
+
+                iconItem.appendChild(canvas);
+                iconItem.appendChild(label);
+                container.appendChild(iconItem);
+            });
+        };
+    </script>
+</body>
+</html>
