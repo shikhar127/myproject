@@ -1,11 +1,11 @@
 // Service Worker for India Salary Calculator PWA
-const CACHE_NAME = 'india-salary-calc-v1';
+const CACHE_NAME = 'india-salary-calc-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/calculator.js',
-  '/manifest.json',
+  './',
+  './index.html',
+  './styles.css',
+  './calculator.js',
+  './manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
@@ -65,7 +65,7 @@ self.addEventListener('fetch', event => {
               return response;
             }
             // If not in cache and network failed, return offline page
-            return caches.match('/index.html');
+            return caches.match('./index.html');
           });
       })
   );
