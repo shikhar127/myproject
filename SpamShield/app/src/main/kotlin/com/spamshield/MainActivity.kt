@@ -58,20 +58,34 @@ class MainActivity : ComponentActivity() {
                     ActivityResultContracts.StartActivityForResult(),
                 ) { smsRoleHeld = RoleStatus.isDefaultSmsApp(this) }
 
+                val requestCallRole = {
+                    RoleStatus.requestCallScreeningIntent(this)?.let(callLauncher::launch)
+                    Unit
+                }
+                val requestSmsRole = {
+                    RoleStatus.requestDefaultSmsIntent(this)?.let(smsLauncher::launch)
+                    Unit
+                }
+
                 if (!state.settings.onboardingComplete) {
                     OnboardingScreen(
                         callRoleHeld = callRoleHeld,
                         smsRoleHeld = smsRoleHeld,
-                        onRequestCallRole = {
-                            RoleStatus.requestCallScreeningIntent(this)?.let(callLauncher::launch)
-                        },
-                        onRequestSmsRole = {
-                            RoleStatus.requestDefaultSmsIntent(this)?.let(smsLauncher::launch)
-                        },
+                        callRoleAvailable = RoleStatus.isCallScreeningAvailable(this),
+                        smsRoleAvailable = RoleStatus.isDefaultSmsAvailable(this),
+                        onRequestCallRole = requestCallRole,
+                        onRequestSmsRole = requestSmsRole,
                         onContinue = viewModel::markOnboardingComplete,
                     )
                 } else {
-                    HomeScreen(state = state, viewModel = viewModel)
+                    HomeScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        callRoleHeld = callRoleHeld,
+                        smsRoleHeld = smsRoleHeld,
+                        onRequestCallRole = requestCallRole,
+                        onRequestSmsRole = requestSmsRole,
+                    )
                 }
             }
         }

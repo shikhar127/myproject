@@ -20,6 +20,17 @@ object RoleStatus {
     fun isDefaultSmsApp(context: Context): Boolean =
         context.packageName == Telephony.Sms.getDefaultSmsPackage(context)
 
+    /** Whether the device even offers the role (some OEM builds don't). */
+    fun isCallScreeningAvailable(context: Context): Boolean {
+        val rm = context.getSystemService(RoleManager::class.java) ?: return false
+        return rm.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)
+    }
+
+    fun isDefaultSmsAvailable(context: Context): Boolean {
+        val rm = context.getSystemService(RoleManager::class.java) ?: return false
+        return rm.isRoleAvailable(RoleManager.ROLE_SMS)
+    }
+
     /** Intent that opens the system dialog asking the user to make us the call screener. */
     fun requestCallScreeningIntent(context: Context): Intent? {
         val rm = context.getSystemService(RoleManager::class.java) ?: return null

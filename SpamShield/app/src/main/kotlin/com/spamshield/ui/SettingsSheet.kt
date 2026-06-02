@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,8 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.spamshield.R
 import com.spamshield.data.entity.CallAction
 import com.spamshield.data.entity.ListType
 import com.spamshield.data.entity.NumberListEntry
@@ -66,7 +70,6 @@ fun SettingsSheet(
                         selected = state.settings.callAction == action,
                         onClick = { viewModel.setCallAction(action) },
                     )
-                    Spacer(Modifier.height(0.dp))
                     Text(
                         text = callActionLabel(action),
                         style = MaterialTheme.typography.bodyLarge,
@@ -134,6 +137,7 @@ private fun NumberListEditor(numbers: List<NumberListEntry>, viewModel: HomeView
         onValueChange = { input = it },
         label = { Text("Phone number") },
         singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         modifier = Modifier.fillMaxWidth(),
     )
     Spacer(Modifier.height(8.dp))
@@ -156,8 +160,23 @@ private fun NumberListEditor(numbers: List<NumberListEntry>, viewModel: HomeView
         }) { Text("Add") }
     }
 
+    // #5: group under quiet subheaders so block vs allow is scannable at a glance.
+    val blocked = numbers.filter { it.type == ListType.BLOCK }
+    val allowed = numbers.filter { it.type == ListType.ALLOW }
+    NumberGroup(stringResource(R.string.list_blocked), blocked, viewModel)
+    NumberGroup(stringResource(R.string.list_allowed), allowed, viewModel)
+}
+
+@Composable
+private fun NumberGroup(title: String, entries: List<NumberListEntry>, viewModel: HomeViewModel) {
+    if (entries.isEmpty()) return
     Spacer(Modifier.height(12.dp))
-    numbers.forEach { entry ->
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    entries.forEach { entry ->
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -165,10 +184,7 @@ private fun NumberListEditor(numbers: List<NumberListEntry>, viewModel: HomeView
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "${entry.number}  ·  ${entry.type.name.lowercase()}",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Text(text = entry.number, style = MaterialTheme.typography.bodyMedium)
             TextButton(onClick = { viewModel.removeNumber(entry) }) { Text("Remove") }
         }
     }

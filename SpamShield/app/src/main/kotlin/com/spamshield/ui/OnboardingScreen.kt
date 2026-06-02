@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +27,8 @@ import com.spamshield.R
 fun OnboardingScreen(
     callRoleHeld: Boolean,
     smsRoleHeld: Boolean,
+    callRoleAvailable: Boolean,
+    smsRoleAvailable: Boolean,
     onRequestCallRole: () -> Unit,
     onRequestSmsRole: () -> Unit,
     onContinue: () -> Unit,
@@ -59,6 +60,7 @@ fun OnboardingScreen(
                 title = stringResource(R.string.role_call_title),
                 why = stringResource(R.string.role_call_why),
                 granted = callRoleHeld,
+                available = callRoleAvailable,
                 onRequest = onRequestCallRole,
             )
             Spacer(Modifier.height(28.dp))
@@ -66,6 +68,7 @@ fun OnboardingScreen(
                 title = stringResource(R.string.role_sms_title),
                 why = stringResource(R.string.role_sms_why),
                 granted = smsRoleHeld,
+                available = smsRoleAvailable,
                 onRequest = onRequestSmsRole,
             )
 
@@ -91,6 +94,7 @@ private fun RoleRequest(
     title: String,
     why: String,
     granted: Boolean,
+    available: Boolean,
     onRequest: () -> Unit,
 ) {
     Column {
@@ -104,12 +108,20 @@ private fun RoleRequest(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
-            if (granted) {
-                TextButton(onClick = {}, enabled = false) {
-                    Text(stringResource(R.string.granted))
-                }
-            } else {
-                OutlinedButton(onClick = onRequest) {
+            when {
+                // Calm success indicator — a check + word, not a dead disabled button.
+                granted -> Text(
+                    text = "✓ ${stringResource(R.string.granted)}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                // #2: never leave a "Grant" button that silently does nothing.
+                !available -> Text(
+                    text = stringResource(R.string.role_unavailable),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                else -> OutlinedButton(onClick = onRequest) {
                     Text(stringResource(R.string.grant))
                 }
             }

@@ -21,9 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spamshield.R
@@ -36,8 +39,16 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(state: HomeUiState, viewModel: HomeViewModel) {
+fun HomeScreen(
+    state: HomeUiState,
+    viewModel: HomeViewModel,
+    callRoleHeld: Boolean,
+    smsRoleHeld: Boolean,
+    onRequestCallRole: () -> Unit,
+    onRequestSmsRole: () -> Unit,
+) {
     var showSettings by remember { mutableStateOf(false) }
+    val nothingYet = state.stats.totalCallsBlocked == 0L && state.stats.totalSmsFiltered == 0L
 
     Scaffold(
         topBar = {
@@ -57,9 +68,18 @@ fun HomeScreen(state: HomeUiState, viewModel: HomeViewModel) {
                 .padding(padding)
                 .padding(horizontal = 24.dp),
         ) {
-            StatsHero(state)
-            Spacer(Modifier.height(32.dp))
-            RecentList(state.recent)
+            // #6: quiet nudges when protection is off, so the screen isn't silently inert.
+            if (!callRoleHeld) StatusNudge(stringResource(R.string.nudge_call_off), onRequestCallRole)
+            if (!smsRoleHeld) StatusNudge(stringResource(R.string.nudge_sms_off), onRequestSmsRole)
+
+            if (nothingYet) {
+                // #1: calm empty state instead of a wall of zeros.
+                EmptyState()
+            } else {
+                StatsHero(state)
+                Spacer(Modifier.height(32.dp))
+                RecentList(state.recent)
+            }
         }
     }
 
@@ -73,37 +93,65 @@ fun HomeScreen(state: HomeUiState, viewModel: HomeViewModel) {
 }
 
 @Composable
+private fun EmptyState() {
+    Spacer(Modifier.height(48.dp))
+    Text(
+        text = stringResource(R.string.empty_state),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun StatusNudge(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+    )
+}
+
+@Composable
 private fun StatsHero(state: HomeUiState) {
     val calls = state.stats.totalCallsBlocked
     val sms = state.stats.totalSmsFiltered
+    val callsLabel = stringResource(
+        if (calls == 1L) R.string.calls_silenced_one else R.string.calls_silenced_other,
+    )
+    val smsLabel = stringResource(
+        if (sms == 1L) R.string.sms_filtered_one else R.string.sms_filtered_other,
+    )
 
     Spacer(Modifier.height(24.dp))
-    // The hero: big confident numerals, everything else quiet.
-    Text(
-        text = "$calls",
-        style = MaterialTheme.typography.displayLarge,
-    )
-    Text(
-        text = if (calls == 1L) "spam call silenced" else "spam calls silenced",
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    // The hero: big confident numerals, everything else quiet. Each numeral + label is
+    // merged into one semantics node so TalkBack reads "147 spam calls silenced".
+    HeroStat(value = calls, label = callsLabel)
     Spacer(Modifier.height(16.dp))
-    Text(
-        text = "$sms",
-        style = MaterialTheme.typography.displayLarge,
-    )
-    Text(
-        text = if (sms == 1L) "spam text filtered" else "spam texts filtered",
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    HeroStat(value = sms, label = smsLabel)
 
     state.stats.firstActiveTimestamp?.let { ts ->
         Spacer(Modifier.height(12.dp))
         Text(
             text = "Since ${formatDate(ts)}",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun HeroStat(value: Long, label: String) {
+    Column(
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "$value $label" },
+    ) {
+        Text(text = "$value", style = MaterialTheme.typography.displayLarge)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
