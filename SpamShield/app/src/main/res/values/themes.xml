@@ -1,0 +1,9 @@
+<resources>
+    <!-- Base theme is a Material3 DayNight theme with no action bar; the real
+         theming (dynamic color / light-dark) is driven by Compose in Theme.kt.
+         Colors are intentionally NOT hardcoded here. -->
+    <style name="Theme.SpamShield" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+</resources>

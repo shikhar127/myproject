@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">SpamShield</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Quiet spam, on your terms</string>
+    <string name="onboarding_subtitle">Everything runs on your phone. No internet, no accounts, no message bodies stored.</string>
+    <string name="role_call_title">Silence spam calls</string>
+    <string name="role_call_why">Lets SpamShield check each incoming call and silence or reject the ones that look like spam — before your phone rings.</string>
+    <string name="role_sms_title">Sort spam texts</string>
+    <string name="role_sms_why">Becoming your SMS app lets SpamShield keep spam out of your inbox. Messages stay in Android\'s own store — SpamShield never copies their text.</string>
+    <string name="grant">Grant</string>
+    <string name="granted">Granted</string>
+    <string name="continue_action">Continue</string>
+
+    <!-- Honesty banner -->
+    <string name="reality_note">SpamShield can\'t stop a call or text from reaching your carrier. It steps in the instant one arrives — silencing, rejecting, or moving it out of sight before it disturbs you.</string>
+
+    <!-- Home -->
+    <string name="empty_state">Nothing blocked yet — you\'re all set.</string>
+    <string name="recent_header">Recent</string>
+    <string name="settings">Settings</string>
+</resources>

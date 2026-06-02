@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      ============================================================================
+      PRIVACY NOTE — there is intentionally NO  <uses-permission INTERNET />  here.
+      The app does zero networking. Adding INTERNET would violate the core promise.
+      ============================================================================
+
+      Permissions below are the *minimum* needed to (a) be eligible as the default
+      call-screening app and (b) be eligible as the default SMS app. The OS only
+      grants the powerful capabilities once the user explicitly assigns the roles
+      via RoleManager (see RoleStatus.kt / OnboardingScreen.kt).
+    -->
+
+    <!-- Required to receive SMS_DELIVER and to read incoming PDUs in memory. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- Required to be eligible as the default SMS app (Telephony.ACTION_DEFAULT_SMS_PACKAGE). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Default SMS apps must also handle MMS WAP push to be eligible. -->
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+    <!-- Read/write the system SMS provider (Telephony) so messages are not lost
+         while we classify them. Bodies live ONLY in the OS provider, never in our DB. -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- Post the "X blocked" / new-message notifications (Android 13+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".SpamShieldApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SpamShield"
+        tools:targetApi="29">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.SpamShield">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          ==========================  CALL SCREENING  ==========================
+          A CallScreeningService that holds ROLE_CALL_SCREENING is invoked by the
+          telecom stack for every incoming call BEFORE the user is disturbed.
+          BIND_SCREENING_SERVICE must be required so only the system can bind.
+        -->
+        <service
+            android:name=".telecom.SpamCallScreeningService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
+
+        <!--
+          =====================  DEFAULT SMS APP (4 required components)  =====================
+          To be selectable as the default SMS app, an app MUST declare ALL FOUR of the
+          components below with these exact actions (per Telephony / DefaultSmsPackage
+          requirements). Missing any one makes the app ineligible.
+        -->
+
+        <!-- (1) SMS_DELIVER receiver — the broadcast ONLY the default SMS app receives.
+                 This is where we classify incoming text in memory. -->
+        <receiver
+            android:name=".sms.SmsDeliverReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+            </intent-filter>
+        </receiver>
+
+        <!-- (2) MMS WAP_PUSH_DELIVER receiver — required so the default SMS app can
+                 receive MMS. We don't store MMS content; declaring it is mandatory for eligibility. -->
+        <receiver
+            android:name=".sms.MmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_WAP_PUSH">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+        </receiver>
+
+        <!-- (3) Compose / "sendto" activity — required so the system has a UI to send
+                 SMS through this app. Minimal: we hand off to the system where possible. -->
+        <activity
+            android:name=".sms.ComposeSmsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </activity>
+
+        <!-- (4) Respond-via-message service — required so "reply with message" during
+                 an incoming call works. Required purely for default-SMS eligibility. -->
+        <service
+            android:name=".sms.HeadlessSmsSendService"
+            android:exported="true"
+            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </service>
+
+    </application>
+</manifest>

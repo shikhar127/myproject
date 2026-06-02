@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ : block both cloud backup and device-to-device transfer of our
+     local data. Keeps the data footprint strictly on this device. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="spamshield.db" />
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="spamshield.db" />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>
