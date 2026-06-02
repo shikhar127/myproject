@@ -2,19 +2,19 @@
     <string name="app_name">SpamShield</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">Quiet spam, on your terms</string>
-    <string name="onboarding_subtitle">Everything runs on your phone. No internet, no accounts, no message bodies stored.</string>
+    <string name="onboarding_title">Peace and quiet from spam</string>
+    <string name="onboarding_subtitle">Everything happens on your phone. No internet, no sign-up, and your messages are never saved.</string>
     <string name="role_call_title">Silence spam calls</string>
-    <string name="role_call_why">Lets SpamShield check each incoming call and silence or reject the ones that look like spam — before your phone rings.</string>
-    <string name="role_sms_title">Sort spam texts</string>
-    <string name="role_sms_why">Becoming your SMS app lets SpamShield keep spam out of your inbox. Messages stay in Android\'s own store — SpamShield never copies their text.</string>
+    <string name="role_call_why">Lets SpamShield check each call as it comes in and quietly silence or hang up on the spam ones — before your phone even rings.</string>
+    <string name="role_sms_title">Filter spam texts</string>
+    <string name="role_sms_why">Make SpamShield your texting app so it can keep spam out of your inbox. Your texts stay in your phone\'s normal message storage — SpamShield never copies what they say.</string>
     <string name="grant">Grant</string>
     <string name="granted">Granted</string>
     <string name="role_unavailable">Not available on this device</string>
     <string name="continue_action">Continue</string>
 
     <!-- Honesty banner -->
-    <string name="reality_note">SpamShield can\'t stop a call or text from reaching your carrier. It steps in the instant one arrives — silencing, rejecting, or moving it out of sight before it disturbs you.</string>
+    <string name="reality_note">SpamShield can\'t stop spam from being sent to your phone. What it does is step in the moment a call or text arrives — silencing it, hanging up, or moving it out of sight before it bothers you.</string>
 
     <!-- Home -->
     <string name="empty_state">Nothing blocked yet — you\'re all set.</string>
@@ -26,8 +26,8 @@
     <string name="sms_filtered_other">spam texts filtered</string>
 
     <!-- Quiet status nudges shown on Home when a role isn\'t held -->
-    <string name="nudge_call_off">Call screening is off — tap to turn it on</string>
-    <string name="nudge_sms_off">SpamShield isn\'t your SMS app — tap to set it</string>
+    <string name="nudge_call_off">Spam call protection is off — tap to turn it on</string>
+    <string name="nudge_sms_off">Spam text filtering is off — tap to turn it on</string>
 
     <!-- Block/allow list subheaders -->
     <string name="list_blocked">Blocked</string>

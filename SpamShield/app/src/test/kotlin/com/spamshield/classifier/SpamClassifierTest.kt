@@ -33,6 +33,33 @@ class SpamClassifierTest {
         assertEquals("CARRIER_MARKER", r.ruleFired)
     }
 
+    @Test fun airtelSuspectedSpamAllCaps() {
+        // Airtel shows "Suspected SPAM" in the caller ID; we must catch every casing.
+        val r = c.classify(SpamClassifier.Signals(callerDisplayName = "Suspected SPAM"))
+        assertEquals(Verdict.SPAM, r.verdict)
+        assertEquals("CARRIER_MARKER", r.ruleFired)
+    }
+
+    @Test fun bareSpamWordInCallerName() {
+        val r = c.classify(SpamClassifier.Signals(callerDisplayName = "SPAM"))
+        assertEquals(Verdict.SPAM, r.verdict)
+        assertEquals("CARRIER_MARKER", r.ruleFired)
+    }
+
+    @Test fun carrierMarkerOffLeavesCallerNameAlone() {
+        // With the setting off, a carrier label must NOT by itself mark spam.
+        val r = c.classify(
+            SpamClassifier.Signals(callerDisplayName = "Suspected Spam", useCarrierMarkers = false),
+        )
+        assertEquals(Verdict.HAM, r.verdict)
+    }
+
+    @Test fun ordinaryCallerNameIsNotSpam() {
+        // "Spammer" the surname-free worry: a normal contact name must stay HAM.
+        val r = c.classify(SpamClassifier.Signals(callerDisplayName = "Ramesh Kumar"))
+        assertEquals(Verdict.HAM, r.verdict)
+    }
+
     @Test fun unverifiedCallerIsSpam() {
         val r = c.classify(SpamClassifier.Signals(callVerificationFailed = true))
         assertEquals(Verdict.SPAM, r.verdict)

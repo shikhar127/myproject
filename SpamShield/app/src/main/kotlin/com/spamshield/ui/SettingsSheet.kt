@@ -54,7 +54,7 @@ fun SettingsSheet(
                 .padding(bottom = 32.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            SectionTitle("When a call looks like spam")
+            SectionTitle("When a call looks like spam, SpamShield should…")
             CallAction.entries.forEach { action ->
                 Row(
                     modifier = Modifier
@@ -82,14 +82,16 @@ fun SettingsSheet(
             Divider()
             Spacer(Modifier.height(16.dp))
 
-            SectionTitle("Detection")
+            SectionTitle("How spam is caught")
             ToggleRow(
-                label = "Use message heuristics",
+                label = "Catch scammy-looking texts",
+                subtitle = "Flags common scam wording, like fake prizes or KYC alerts.",
                 checked = state.settings.useHeuristics,
                 onChange = viewModel::setUseHeuristics,
             )
             ToggleRow(
-                label = "Trust carrier spam markers",
+                label = "Use your network's spam warnings",
+                subtitle = "If your phone network (like Airtel) labels a call “Suspected spam,” treat it as spam.",
                 checked = state.settings.useCarrierMarkers,
                 onChange = viewModel::setUseCarrierMarkers,
             )
@@ -98,7 +100,7 @@ fun SettingsSheet(
             Divider()
             Spacer(Modifier.height(16.dp))
 
-            SectionTitle("Block & allow list")
+            SectionTitle("Blocked & allowed numbers")
             NumberListEditor(state.numbers, viewModel)
 
             Spacer(Modifier.height(24.dp))
@@ -110,7 +112,7 @@ fun SettingsSheet(
                 TextButton(onClick = { confirm = true }) { Text("Clear all data") }
             } else {
                 Text(
-                    "This resets the spam log and lifetime totals. Your block/allow list is kept.",
+                    "This erases your spam history and resets the counts. Your blocked and allowed numbers are kept.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -202,7 +204,12 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ToggleRow(
+    label: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+    subtitle: String? = null,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -210,13 +217,22 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge)
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 
 private fun callActionLabel(action: CallAction): String = when (action) {
-    CallAction.REJECT -> "Reject the call"
-    CallAction.SILENCE -> "Silence the ring (recommended)"
-    CallAction.NOTIFY_ONLY -> "Let it ring, just track it"
+    CallAction.REJECT -> "Hang up automatically"
+    CallAction.SILENCE -> "Silence it — no ring (recommended)"
+    CallAction.NOTIFY_ONLY -> "Let it ring, just keep a record"
 }

@@ -61,6 +61,9 @@ class SpamClassifier {
         if (display.isNullOrBlank()) return false
         val d = display.lowercase()
         if (CARRIER_MARKERS.any { d.contains(it) }) return true
+        // A standalone word like "SPAM", "Scam" or "Fraud" anywhere in the caller name —
+        // covers Airtel's "Suspected SPAM" as well as a bare "SPAM" label.
+        if (WORD_MARKER.containsMatchIn(display)) return true
         // Trailing "-S" / "(S)" style suffix some carriers append for "spam".
         return SUFFIX_MARKER.containsMatchIn(display.trim())
     }
@@ -80,6 +83,7 @@ class SpamClassifier {
             "suspected spam", "spam likely", "scam likely", "potential spam",
             "telemarketer", "fraud",
         )
+        private val WORD_MARKER = Regex("""\b(spam|scam|fraud)\b""", RegexOption.IGNORE_CASE)
         private val SUFFIX_MARKER = Regex("""[\s(]-?[Ss]\)?$""")
 
         private val KEYWORDS = listOf(

@@ -24,6 +24,20 @@ something arrives — before it disturbs you.
 So "blocking" realistically means **auto-reject / silence / route-out-of-sight on
 arrival**, not preventing delivery. The onboarding screen and UI say this plainly.
 
+### Using your carrier's spam label (e.g. Airtel "Suspected spam")
+If your network already tags a call as spam in the **caller-ID name** (Airtel shows
+"Suspected SPAM"), SpamShield's `CARRIER_MARKER` rule reads that label from
+`Call.Details.callerDisplayName` and treats the call as spam — gated behind the
+**"Use your network's spam warnings"** setting (on by default).
+
+**Honest caveat:** there is still **no Airtel API**. We can only act on the label *if the
+network delivers it as caller-ID text that a third-party `CallScreeningService` can read*.
+On some devices/networks Airtel renders "Suspected spam" in its **own** dialer UI, where no
+third-party app can see it — in that case this rule simply won't fire, and the other rules
+(your block list, unverified-caller, heuristics) still apply. Whether it works is something
+you can only confirm on your own SIM: a flagged spam call will appear **silenced in the
+Recent list**.
+
 ---
 
 ## Privacy guarantee (the whole point)
