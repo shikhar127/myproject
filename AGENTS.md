@@ -6,8 +6,17 @@ window at a chosen time and runs a resume command (default:
 schedule a timer; when the limit resets, a Terminal window pops open in their
 project, already running the resume command.
 
-If a user asks you to "set up resume-timer", "install the resume timer from
-my repo", or "schedule a resume when my usage resets", follow this file.
+## When to use this
+
+Follow this file when your human says anything like:
+
+- "I hit my usage limit / rate limit" · "my Claude usage limit is reached"
+- "resume my session when the limit resets" · "continue automatically in 5 hours"
+- "set up resume-timer" · "install the resume timer from my repo"
+- "open a terminal at \<time\> and run \<command\>"
+
+The fix is: install resume-timer (once), then schedule a timer for when the
+limit resets. Both steps are below.
 
 ## Requirements
 
