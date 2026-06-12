@@ -78,7 +78,6 @@ const HOLIDAYS_2026 = [
   ["2026-10-02", "Gandhi Jayanti", false],
   ["2026-10-20", "Dussehra (Vijaya Dashami)", false],
   ["2026-11-08", "Diwali (Deepavali)", false],
-  ["2026-11-09", "Govardhan Puja", false],
   ["2026-11-24", "Guru Nanak Jayanti", false],
   ["2026-12-25", "Christmas Day", false],
 ].map(([date, name, tentative]) => ({ id: uid(), date, name, tentative, enabled: true, custom: false }));
@@ -474,16 +473,36 @@ function renderWeek() {
     : '<p class="hint">None yet. WFH days, leaves and early starts you add appear here.</p>';
 }
 
+let showPastHolidays = false;
+let editingHolidayId = null;
+
 function renderHolidays() {
   const todayK = dateKey(new Date());
   const sorted = [...state.holidays].sort((a, b) => a.date.localeCompare(b.date));
-  $("#holidayList").innerHTML = sorted.map((h) => `
+  const past = sorted.filter((h) => h.date < todayK);
+  const upcoming = sorted.filter((h) => h.date >= todayK);
+  const visible = showPastHolidays ? sorted : upcoming;
+  const enabledCount = upcoming.filter((h) => h.enabled).length;
+
+  const row = (h) => `
     <div class="hol-row ${h.date < todayK ? "past" : ""} ${h.enabled ? "" : "off-h"}" data-id="${h.id}">
-      <span class="hol-date" data-act="edit-date" title="Tap to change date">${niceDate(h.date)}</span>
-      <span class="hol-name">${esc(h.name)} ${h.tentative ? '<span class="tentative" title="Lunar date — tentative">~</span>' : ""}</span>
+      ${h.id === editingHolidayId
+        ? `<input type="date" class="hol-date-input" value="${h.date}">`
+        : `<button class="hol-date" data-act="edit-date" title="Change date">${niceDate(h.date)} ✎</button>`}
+      <span class="hol-name">${esc(h.name)} ${h.tentative ? '<span class="tentative" title="Lunar date — tentative, tap the date to fix">~</span>' : ""}</span>
       <label class="switch"><input type="checkbox" data-act="toggle-h" ${h.enabled ? "checked" : ""}><span class="slider"></span></label>
       <button class="icon-btn" data-act="del-h" title="Delete">🗑</button>
-    </div>`).join("");
+    </div>`;
+
+  $("#holidayList").innerHTML =
+    `<p class="hint">${upcoming.length} upcoming · ${enabledCount} will skip alarms</p>` +
+    visible.map(row).join("") +
+    (past.length && !showPastHolidays
+      ? `<button class="btn btn-ghost btn-small btn-wide" id="showPastHol">Show ${past.length} past holidays</button>`
+      : "") +
+    (showPastHolidays && past.length
+      ? `<button class="btn btn-ghost btn-small btn-wide" id="hidePastHol">Hide past holidays</button>`
+      : "");
 }
 
 function renderSuggestions() {
@@ -675,6 +694,8 @@ function bindEvents() {
 
   // holidays
   $("#holidayList").addEventListener("click", (e) => {
+    if (e.target.closest("#showPastHol")) { showPastHolidays = true; renderHolidays(); return; }
+    if (e.target.closest("#hidePastHol")) { showPastHolidays = false; renderHolidays(); return; }
     const row = e.target.closest(".hol-row");
     if (!row) return;
     const h = state.holidays.find((x) => x.id === row.dataset.id);
@@ -689,11 +710,31 @@ function bindEvents() {
         save(); renderAll();
       }
     } else if (act === "edit-date") {
-      const nd = prompt(`Date for "${h.name}" (YYYY-MM-DD):`, h.date);
-      if (nd && /^\d{4}-\d{2}-\d{2}$/.test(nd)) {
-        h.date = nd; h.tentative = false;
-        save(); renderAll();
-      }
+      editingHolidayId = h.id;
+      renderHolidays();
+      const inp = $("#holidayList .hol-date-input");
+      if (inp) inp.focus();
+    }
+  });
+  // commit inline date edits
+  $("#holidayList").addEventListener("change", (e) => {
+    const inp = e.target.closest(".hol-date-input");
+    if (!inp) return;
+    const h = state.holidays.find((x) => x.id === editingHolidayId);
+    if (h && /^\d{4}-\d{2}-\d{2}$/.test(inp.value)) {
+      h.date = inp.value;
+      h.tentative = false;
+      save();
+    }
+    editingHolidayId = null;
+    renderAll();
+  });
+  $("#holidayList").addEventListener("focusout", (e) => {
+    if (e.target.closest(".hol-date-input") && editingHolidayId) {
+      // change (if any) fires before focusout; this just closes the editor
+      setTimeout(() => {
+        if (editingHolidayId) { editingHolidayId = null; renderHolidays(); }
+      }, 150);
     }
   });
   $("#hoSave").addEventListener("click", () => {

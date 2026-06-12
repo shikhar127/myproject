@@ -173,7 +173,16 @@ code { background: var(--bg2); padding: 1px 5px; border-radius: 5px; font-size: 
 }
 .hol-row.past { opacity: .4; }
 .hol-row.off-h .hol-name { color: var(--muted); text-decoration: line-through; }
-.hol-date { width: 92px; flex: none; color: var(--accent); font-variant-numeric: tabular-nums; cursor: pointer; }
+.hol-date {
+  width: 108px; flex: none; color: var(--accent); font-variant-numeric: tabular-nums;
+  cursor: pointer; background: none; border: none; font-size: inherit; font-family: inherit;
+  text-align: left; padding: 0; border-radius: 6px;
+}
+.hol-date:hover { text-decoration: underline; }
+.hol-date-input {
+  width: 148px; flex: none; background: var(--bg2); color: var(--text);
+  border: 1px solid var(--accent); border-radius: 8px; padding: 5px 8px; font-size: .85rem;
+}
 .hol-name { flex: 1; min-width: 0; }
 .tentative { color: var(--accent2); font-weight: 700; }
 
