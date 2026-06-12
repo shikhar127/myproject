@@ -1,5 +1,28 @@
 # 🇮🇳 India In-Hand Salary Calculator
 
+## ⏰ resume-timer — auto-resume your AI session when a usage limit resets
+
+Hit a **Claude / Claude Code usage limit** (or any AI rate limit) and want to
+**resume work automatically** when it resets? This repo also ships
+**[resume-timer](RESUME-TIMER.md)**: a macOS CLI that pops open a Terminal
+window at the reset time and runs your resume command
+(default: `claude --continue`). Works even if you close the terminal or the
+Mac sleeps — scheduling is done by launchd.
+
+```bash
+# install (one command, no sudo, no dependencies)
+curl -fsSL https://raw.githubusercontent.com/shikhar127/myproject/master/install.sh | bash
+
+# when you hit your limit:
+resume-timer in 5h        # or: resume-timer at 09:00
+```
+
+🤖 **AI agents**: follow **[AGENTS.md](AGENTS.md)** for step-by-step install,
+verify, usage, and uninstall instructions. Machine-readable summary in
+[llms.txt](llms.txt).
+
+---
+
 A comprehensive web-based salary calculator for India that accurately converts CTC (Cost to Company) to in-hand/take-home salary with full support for both New and Old Tax Regimes (FY 2025-26).
 
 ## 🚀 Features
