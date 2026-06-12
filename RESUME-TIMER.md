@@ -14,6 +14,14 @@ Timing granularity is one minute.
 
 ## Install
 
+One line, no clone needed:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/shikhar127/myproject/master/install.sh | bash
+```
+
+Or from a clone:
+
 ```bash
 git clone https://github.com/shikhar127/myproject.git
 cd myproject
@@ -21,6 +29,9 @@ cd myproject
 ```
 
 (Or just run `./resume-timer.sh ...` directly without installing.)
+
+> Setting this up with an AI agent? Point it at [AGENTS.md](AGENTS.md) —
+> it contains step-by-step install, verify, and usage instructions.
 
 ## Usage
 

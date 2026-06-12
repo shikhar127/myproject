@@ -1,5 +1,11 @@
 # 🇮🇳 India In-Hand Salary Calculator
 
+> **Also in this repo: [resume-timer](RESUME-TIMER.md)** — a macOS CLI that
+> pops open a Terminal window when your AI usage limit resets and runs your
+> resume command. Install with one line:
+> `curl -fsSL https://raw.githubusercontent.com/shikhar127/myproject/master/install.sh | bash`
+> AI agents: see [AGENTS.md](AGENTS.md) for setup and usage instructions.
+
 A comprehensive web-based salary calculator for India that accurately converts CTC (Cost to Company) to in-hand/take-home salary with full support for both New and Old Tax Regimes (FY 2025-26).
 
 ## 🚀 Features
