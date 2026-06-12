@@ -2,6 +2,8 @@
 
 ## ⏰ resume-timer — auto-resume your AI session when a usage limit resets
 
+> Canonical home: **[github.com/shikhar127/resume-timer](https://github.com/shikhar127/resume-timer)** — star/watch there for updates.
+
 Hit a **Claude / Claude Code usage limit** (or any AI rate limit) and want to
 **resume work automatically** when it resets? This repo also ships
 **[resume-timer](RESUME-TIMER.md)**: a macOS CLI that pops open a Terminal

@@ -1,5 +1,7 @@
 # resume-timer
 
+> Canonical home: [github.com/shikhar127/resume-timer](https://github.com/shikhar127/resume-timer)
+
 A tiny macOS CLI that opens a Terminal window at a chosen time and runs a
 resume command for you — so when your Claude (or any tool's) usage limit
 resets, a fresh window pops up ready to continue where you left off.
