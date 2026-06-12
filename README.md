@@ -25,6 +25,22 @@ verify, usage, and uninstall instructions. Machine-readable summary in
 
 ---
 
+## ⏰ WakeWork — alarm clock for Indian working professionals
+
+A schedule-aware alarm clock prototype in [`alarm/`](alarm/) — open
+`alarm/index.html` in a browser. Recurring weekday alarms that **skip Indian
+public holidays** (editable 2026 preset included), **shift later on WFH days**,
+**skip on leaves**, and **suggest earlier wake-ups from your calendar**
+(import a Google/Outlook/Apple `.ics` export; each day's first meeting before
+your threshold produces a wake-time suggestion = meeting − getting-ready −
+commute). A 7-day preview shows exactly what will ring and why.
+
+Product thinking, calendar-access architecture (Android Calendar Provider /
+EventKit / Google OAuth) and the native-app roadmap are in
+**[ALARM-APP.md](ALARM-APP.md)**. Engine tests: `node alarm/test.js`.
+
+---
+
 A comprehensive web-based salary calculator for India that accurately converts CTC (Cost to Company) to in-hand/take-home salary with full support for both New and Old Tax Regimes (FY 2025-26).
 
 ## 🚀 Features

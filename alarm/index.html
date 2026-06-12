@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WakeWork — Alarm Clock for Indian Professionals</title>
+<link rel="stylesheet" href="alarm.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">⏰ WakeWork <span class="brand-sub">India edition</span></div>
+    <div class="clock">
+      <div id="clockTime" class="clock-time">--:--</div>
+      <div id="clockDate" class="clock-date"></div>
+    </div>
+    <div id="nextAlarmBanner" class="next-alarm"></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="alarms">Alarms</button>
+    <button class="tab" data-tab="week">Week</button>
+    <button class="tab" data-tab="holidays">Holidays</button>
+    <button class="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </nav>
+
+  <!-- ================= ALARMS ================= -->
+  <section class="panel active" id="panel-alarms">
+    <div id="alarmList" class="alarm-list"></div>
+    <button id="addAlarmBtn" class="btn btn-primary btn-wide">+ Add alarm</button>
+
+    <div id="alarmForm" class="card form hidden">
+      <h3 id="alarmFormTitle">New alarm</h3>
+      <input type="hidden" id="afId">
+      <div class="form-row">
+        <label>Time</label>
+        <input type="time" id="afTime" value="07:00">
+      </div>
+      <div class="form-row">
+        <label>Label</label>
+        <input type="text" id="afLabel" placeholder="Office wake-up" maxlength="40">
+      </div>
+      <div class="form-row">
+        <label>Repeat</label>
+        <div class="day-chips" id="afDays">
+          <button class="chip" data-day="0">S</button>
+          <button class="chip on" data-day="1">M</button>
+          <button class="chip on" data-day="2">T</button>
+          <button class="chip on" data-day="3">W</button>
+          <button class="chip on" data-day="4">T</button>
+          <button class="chip on" data-day="5">F</button>
+          <button class="chip" data-day="6">S</button>
+        </div>
+      </div>
+      <div class="form-row toggle-row">
+        <label>Skip on public holidays</label>
+        <input type="checkbox" id="afSkipHolidays" checked>
+      </div>
+      <div class="form-row toggle-row">
+        <label>Smart adjust <span class="hint">(follows WFH / leave / early-start days)</span></label>
+        <input type="checkbox" id="afSmart" checked>
+      </div>
+      <div class="form-row" id="afWfhRow">
+        <label>On WFH days</label>
+        <select id="afWfhMode">
+          <option value="shift">Ring later by the default WFH shift</option>
+          <option value="time">Ring at a fixed WFH time</option>
+          <option value="same">Keep the same time</option>
+        </select>
+        <input type="time" id="afWfhTime" value="08:30" class="hidden">
+      </div>
+      <div class="form-row">
+        <label>Sound</label>
+        <select id="afSound">
+          <option value="classic">Classic beep</option>
+          <option value="gentle">Gentle rise</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <button class="btn btn-ghost btn-small" id="afPreviewSound">▶ preview</button>
+      </div>
+      <div class="form-row">
+        <label>Snooze (minutes)</label>
+        <input type="number" id="afSnooze" min="1" max="30" value="10">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="afCancel">Cancel</button>
+        <button class="btn btn-primary" id="afSave">Save alarm</button>
+      </div>
+    </div>
+
+    <p class="note">⚠️ Web prototype: keep this tab open for alarms to ring.
+    Enable notifications in <a href="#" data-goto="settings">Settings</a>.
+    The production app is planned as a native Android/iOS app that rings even
+    when closed — see <code>ALARM-APP.md</code>.</p>
+  </section>
+
+  <!-- ================= WEEK ================= -->
+  <section class="panel" id="panel-week">
+    <h3>Next 7 days</h3>
+    <p class="hint">Tap a day to mark it WFH, early start, or leave. This is
+    exactly what will ring — skips show why.</p>
+    <div id="weekList"></div>
+
+    <h3>Upcoming overrides</h3>
+    <div id="overrideList"></div>
+
+    <div class="card form">
+      <h3>Add override</h3>
+      <div class="form-row">
+        <label>Date</label>
+        <input type="date" id="ovDate">
+      </div>
+      <div class="form-row">
+        <label>Type</label>
+        <select id="ovType">
+          <option value="wfh">🏠 Working from home</option>
+          <option value="early">⏪ Early start (meeting / shift)</option>
+          <option value="leave">🌴 On leave — skip alarms</option>
+          <option value="custom">🕑 Custom wake time</option>
+        </select>
+      </div>
+      <div class="form-row" id="ovTimeRow">
+        <label>Wake time</label>
+        <input type="time" id="ovTime" value="06:00">
+      </div>
+      <div class="form-row">
+        <label>Note (optional)</label>
+        <input type="text" id="ovNote" placeholder="Client call at 8" maxlength="60">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="ovSave">Save override</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOLIDAYS ================= -->
+  <section class="panel" id="panel-holidays">
+    <h3>Holiday calendar 2026 🇮🇳</h3>
+    <p class="hint">National preset — toggle off the ones your company doesn't
+    observe, add your company/state holidays. Dates marked <span class="tentative">~</span>
+    are lunar-calendar festivals and may shift; tap the date to edit.</p>
+    <div id="holidayList"></div>
+    <div class="card form">
+      <h3>Add holiday</h3>
+      <div class="form-row"><label>Date</label><input type="date" id="hoDate"></div>
+      <div class="form-row"><label>Name</label><input type="text" id="hoName" placeholder="Company Foundation Day" maxlength="60"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="hoSave">Add holiday</button></div>
+    </div>
+  </section>
+
+  <!-- ================= CALENDAR ================= -->
+  <section class="panel" id="panel-calendar">
+    <h3>Calendar-aware wake-ups</h3>
+    <p class="hint">Import your calendar and WakeWork finds each day's
+    <b>first meeting</b>. If it starts before your threshold
+    (<span id="thresholdEcho">10:00</span>), it suggests a wake time =
+    meeting − getting-ready time − commute (commute is skipped on WFH days).</p>
+
+    <div class="card">
+      <h4>Import .ics file</h4>
+      <p class="hint">Google Calendar → Settings → Import &amp; export → Export.
+      Outlook/Apple Calendar exports work too. Parsed entirely on this device —
+      nothing is uploaded.</p>
+      <input type="file" id="icsFile" accept=".ics,text/calendar">
+      <div id="icsStatus" class="hint"></div>
+    </div>
+
+    <div id="suggestionList"></div>
+
+    <div class="card">
+      <h4>Production plan</h4>
+      <p class="hint">The native app will read the device calendar directly
+      (Android Calendar Provider / iOS EventKit) — no export step, auto-refresh
+      nightly. A web companion would use Google Calendar OAuth
+      (<code>calendar.readonly</code>). Details in <code>ALARM-APP.md</code>.</p>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <section class="panel" id="panel-settings">
+    <h3>Settings</h3>
+    <div class="card form">
+      <div class="form-row"><label>Getting-ready time (min)</label><input type="number" id="setPrep" min="5" max="180"></div>
+      <div class="form-row"><label>Commute to office (min)</label><input type="number" id="setCommute" min="0" max="240"></div>
+      <div class="form-row"><label>Early-meeting threshold</label><input type="time" id="setThreshold"></div>
+      <div class="form-row"><label>Default WFH shift (ring later by, min)</label><input type="number" id="setWfhShift" min="0" max="240"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="setSave">Save settings</button></div>
+    </div>
+    <div class="card form">
+      <div class="form-row toggle-row">
+        <label>Browser notifications</label>
+        <button class="btn btn-ghost" id="notifBtn">Enable</button>
+      </div>
+      <div class="form-row toggle-row">
+        <label>Test the ringer</label>
+        <button class="btn btn-ghost" id="testRing">🔔 Ring now</button>
+      </div>
+      <div class="form-row toggle-row">
+        <label>Reset all data</label>
+        <button class="btn btn-danger" id="resetAll">Reset</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ================= RING OVERLAY ================= -->
+<div id="ringOverlay" class="ring-overlay hidden">
+  <div class="ring-time" id="ringTime">07:00</div>
+  <div class="ring-label" id="ringLabel">Wake up!</div>
+  <div class="ring-reason" id="ringReason"></div>
+  <div class="ring-actions">
+    <button class="btn btn-snooze" id="snoozeBtn">😴 Snooze</button>
+    <button class="btn btn-dismiss" id="dismissBtn">✅ I'm up</button>
+  </div>
+</div>
+
+<script src="alarm.js"></script>
+</body>
+</html>
