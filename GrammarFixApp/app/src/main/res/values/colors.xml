@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#1A1A1A</color>
+    <color name="bg_input">#252525</color>
+    <color name="bg_bubble_user">#2E2E2E</color>
+    <color name="bg_bubble_fixed">#2A1F0E</color>
+    <color name="accent_orange">#E07B3F</color>
+    <color name="text_primary">#F0F0F0</color>
+    <color name="text_secondary">#888888</color>
+    <color name="text_hint">#555555</color>
+    <color name="btn_fix">#3A2010</color>
+    <color name="btn_clear">#2A2A2A</color>
+    <color name="error_red">#CF6679</color>
+</resources>
