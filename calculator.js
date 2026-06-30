@@ -69,6 +69,10 @@ function calculateNewRegimeTax(grossSalary) {
     // Apply rebate u/s 87A (for income up to 12L)
     if (taxableIncome <= 1200000) {
         tax = Math.max(0, tax - 60000);
+    } else {
+        // Marginal relief: just above 12L, tax can't exceed the income over the threshold
+        const marginalRelief = taxableIncome - 1200000;
+        tax = Math.min(tax, marginalRelief);
     }
 
     // Add 4% cess
@@ -86,6 +90,10 @@ function calculateOldRegimeTax(grossSalary, deductions) {
     // Apply rebate u/s 87A (for income up to 5L)
     if (taxableIncome <= 500000) {
         tax = Math.max(0, tax - 12500);
+    } else {
+        // Marginal relief: just above 5L, tax can't exceed the income over the threshold
+        const marginalRelief = taxableIncome - 500000;
+        tax = Math.min(tax, marginalRelief);
     }
 
     // Add 4% cess
@@ -126,6 +134,42 @@ function calculateESI(grossMonthly) {
     return { applicable: false, employee: 0, employer: 0 };
 }
 
+// ===== Old Regime Deductions (reads actual form inputs) =====
+function getOldRegimeDeductions(annualBasic, annualHRA, annualEmployeePF, isMetro) {
+    const monthlyRent = parseNumber(document.getElementById('monthlyRent').value);
+    const annualRent = monthlyRent * 12;
+
+    const hraExemption = calculateHRAExemption(annualBasic, 0, annualHRA, annualRent, isMetro);
+
+    const section80C = parseNumber(document.getElementById('section80C').value);
+    const section80D = parseNumber(document.getElementById('section80D').value);
+    const section80CCD1B = parseNumber(document.getElementById('section80CCD1B').value);
+    const homeLoanInterest = parseNumber(document.getElementById('homeLoanInterest').value);
+    const otherDeductions = parseNumber(document.getElementById('otherDeductions').value);
+
+    const total80C = Math.min(section80C + annualEmployeePF, 150000);
+
+    const totalDeductions = {
+        hraExemption,
+        section80C: total80C,
+        section80D: Math.min(section80D, 100000),
+        section80CCD1B: Math.min(section80CCD1B, 50000),
+        homeLoanInterest: Math.min(homeLoanInterest, 200000),
+        otherDeductions,
+        total: 0
+    };
+
+    totalDeductions.total =
+        totalDeductions.hraExemption +
+        totalDeductions.section80C +
+        totalDeductions.section80D +
+        totalDeductions.section80CCD1B +
+        totalDeductions.homeLoanInterest +
+        totalDeductions.otherDeductions;
+
+    return totalDeductions;
+}
+
 // ===== Main Salary Calculation =====
 function calculateSalary() {
     // Get input values
@@ -164,15 +208,21 @@ function calculateSalary() {
     const monthlyHRA = annualHRA / 12;
 
     // Calculate employer contributions (part of CTC but not in gross)
-    const employerPF = calculateEPF(monthlyBasic, 'standard') * 12;
+    const employerPF = calculateEPF(monthlyBasic, 'full') * 12;
     const gratuity = annualBasic * 0.0481;
 
     // Calculate gross salary (CTC minus employer contributions)
     const annualGross = annualCTC - employerPF - gratuity;
 
     // Calculate special allowance (balancing figure)
-    const annualSpecial = annualGross - annualBasic - annualHRA - variablePay;
+    const rawAnnualSpecial = annualGross - annualBasic - annualHRA - variablePay;
+    const annualSpecial = Math.max(0, rawAnnualSpecial);
     const monthlySpecial = annualSpecial / 12;
+
+    // Basic + HRA (+ variable) can exceed gross salary at high basic %, especially in metros
+    if (rawAnnualSpecial < 0) {
+        basicWarning.style.display = 'block';
+    }
 
     // Monthly calculations
     const monthlyVariable = includeVariableMonthly ? variablePay / 12 : 0;
@@ -209,45 +259,7 @@ function calculateSalary() {
         monthlyTax = annualTax / 12;
     } else {
         // Old regime with deductions
-        const monthlyRent = parseNumber(document.getElementById('monthlyRent').value);
-        const annualRent = monthlyRent * 12;
-
-        // HRA exemption
-        const hraExemption = calculateHRAExemption(
-            annualBasic,
-            0, // DA (can be added from advanced mode)
-            annualHRA,
-            annualRent,
-            isMetro
-        );
-
-        // Other deductions
-        const section80C = parseNumber(document.getElementById('section80C').value);
-        const section80D = parseNumber(document.getElementById('section80D').value);
-        const section80CCD1B = parseNumber(document.getElementById('section80CCD1B').value);
-        const homeLoanInterest = parseNumber(document.getElementById('homeLoanInterest').value);
-        const otherDeductions = parseNumber(document.getElementById('otherDeductions').value);
-
-        // Total 80C (including EPF)
-        const total80C = Math.min(section80C + annualEmployeePF, 150000);
-
-        const totalDeductions = {
-            hraExemption,
-            section80C: total80C,
-            section80D: Math.min(section80D, 100000),
-            section80CCD1B: Math.min(section80CCD1B, 50000),
-            homeLoanInterest: Math.min(homeLoanInterest, 200000),
-            otherDeductions,
-            total: 0
-        };
-
-        totalDeductions.total =
-            totalDeductions.hraExemption +
-            totalDeductions.section80C +
-            totalDeductions.section80D +
-            totalDeductions.section80CCD1B +
-            totalDeductions.homeLoanInterest +
-            totalDeductions.otherDeductions;
+        const totalDeductions = getOldRegimeDeductions(annualBasic, annualHRA, annualEmployeePF, isMetro);
 
         const oldTaxResult = calculateOldRegimeTax(annualGross, totalDeductions);
         annualTax = oldTaxResult.tax;
@@ -255,38 +267,26 @@ function calculateSalary() {
         monthlyTax = annualTax / 12;
     }
 
-    // Calculate both regimes for comparison
+    // Calculate both regimes for comparison (reusing the same actual deduction
+    // inputs the user entered, regardless of which regime is currently selected)
     const newRegimeResult = calculateNewRegimeTax(annualGross);
     let oldRegimeResult;
 
     if (taxRegime === 'old') {
         oldRegimeResult = { tax: annualTax, taxableIncome };
     } else {
-        // Calculate old regime for comparison
-        const monthlyRent = parseNumber(document.getElementById('monthlyRent').value);
-        const annualRent = monthlyRent * 12;
-        const hraExemption = calculateHRAExemption(annualBasic, 0, annualHRA, annualRent, isMetro);
-
-        const totalDeductions = {
-            hraExemption,
-            section80C: Math.min(annualEmployeePF, 150000),
-            section80D: 0,
-            section80CCD1B: 0,
-            homeLoanInterest: 0,
-            otherDeductions: 0,
-            total: 0
-        };
-
-        totalDeductions.total = totalDeductions.hraExemption + totalDeductions.section80C;
+        const totalDeductions = getOldRegimeDeductions(annualBasic, annualHRA, annualEmployeePF, isMetro);
         oldRegimeResult = calculateOldRegimeTax(annualGross, totalDeductions);
     }
 
     // Total monthly deductions
     const totalMonthlyDeductions = monthlyEmployeePF + monthlyPT + monthlyTax + monthlyESI;
 
-    // In-hand salary
+    // In-hand salary (monthly figure uses the typical month's PT; annual figure is
+    // derived straight from the annual totals so it always reconciles exactly with
+    // "Total Annual Deductions", even for states whose PT isn't a flat 1/12th split)
     const monthlyInHand = grossMonthly - totalMonthlyDeductions;
-    const annualTakeHome = (monthlyInHand * 12) + (includeVariableMonthly ? 0 : variablePay);
+    const annualTakeHome = annualGross - annualEmployeePF - annualPT - annualTax - annualESI;
 
     // Display results
     displayResults({
@@ -312,6 +312,7 @@ function calculateSalary() {
         annualEmployeePF,
         annualPT,
         annualTax,
+        annualESI,
         newRegimeResult,
         oldRegimeResult,
         annualGross
@@ -367,19 +368,19 @@ function displayResults(data) {
     document.getElementById('annualPT').textContent = formatCurrency(data.annualPT);
     document.getElementById('annualTax').textContent = formatCurrency(data.annualTax);
 
-    const totalAnnualDeductions = data.annualEmployeePF + data.annualPT + data.annualTax;
+    const totalAnnualDeductions = data.annualEmployeePF + data.annualPT + data.annualTax + data.annualESI;
     document.getElementById('totalAnnualDeductions').textContent = formatCurrency(totalAnnualDeductions);
     document.getElementById('annualTakeHomeDisplay').textContent = formatCurrency(data.annualTakeHome);
 
-    // Regime comparison
+    // Regime comparison (same deductions as the headline take-home: PF, PT, ESI, tax)
     document.getElementById('newTaxableIncome').textContent = formatCurrency(data.newRegimeResult.taxableIncome);
     document.getElementById('newTaxAmount').textContent = formatCurrency(data.newRegimeResult.tax);
-    const newTakeHome = data.annualGross - data.annualEmployeePF - data.annualPT - data.newRegimeResult.tax;
+    const newTakeHome = data.annualGross - data.annualEmployeePF - data.annualPT - data.annualESI - data.newRegimeResult.tax;
     document.getElementById('newTakeHome').textContent = formatCurrency(newTakeHome);
 
     document.getElementById('oldTaxableIncome').textContent = formatCurrency(data.oldRegimeResult.taxableIncome);
     document.getElementById('oldTaxAmount').textContent = formatCurrency(data.oldRegimeResult.tax);
-    const oldTakeHome = data.annualGross - data.annualEmployeePF - data.annualPT - data.oldRegimeResult.tax;
+    const oldTakeHome = data.annualGross - data.annualEmployeePF - data.annualPT - data.annualESI - data.oldRegimeResult.tax;
     document.getElementById('oldTakeHome').textContent = formatCurrency(oldTakeHome);
 
     // Recommendation
@@ -510,6 +511,21 @@ function updateCharts(data) {
     });
 }
 
+// ===== Quick In-Hand Estimate (Hike Calculator & Compare Offers) =====
+// Uses the same EPF/gratuity/new-regime-tax logic as the main calculator instead of a
+// flat percentage of CTC — take-home % shrinks as CTC rises into higher tax slabs, which
+// a flat percentage can't capture (e.g. it overstates take-home at high CTC and understates
+// it at low CTC).
+function estimateMonthlyInHand(ctc, basicPercent, isMetro) {
+    const basic = (ctc * basicPercent) / 100;
+    const employerPF = basic * 0.12;
+    const gratuity = basic * 0.0481;
+    const gross = Math.max(0, ctc - employerPF - gratuity);
+    const employeePF = basic * 0.12;
+    const { tax } = calculateNewRegimeTax(gross);
+    return (gross - employeePF - tax) / 12;
+}
+
 // ===== Hike Calculator =====
 function calculateHike() {
     const currentCTC = parseNumber(document.getElementById('currentCTC').value);
@@ -523,9 +539,9 @@ function calculateHike() {
         newCTC = currentCTC * (1 + hikePercentage / 100);
     }
 
-    // Calculate approximate in-hand (using simplified calculation)
-    const currentInHand = currentCTC * 0.7 / 12; // Approximate 70% of CTC
-    const newInHand = newCTC * 0.7 / 12;
+    // Assumes 40% basic and non-metro HRA, new tax regime
+    const currentInHand = estimateMonthlyInHand(currentCTC, 40, false);
+    const newInHand = estimateMonthlyInHand(newCTC, 40, false);
     const incrementalInHand = newInHand - currentInHand;
 
     document.getElementById('currentInHand').value = Math.round(currentInHand);
@@ -548,13 +564,7 @@ function compareOffers() {
 
             const basic = (ctc * basicPercent) / 100;
             const isMetro = city === 'metro';
-            const hra = basic * (isMetro ? 0.50 : 0.40);
-            const employerPF = (basic / 12) * 0.12 * 12;
-            const gratuity = basic * 0.0481;
-            const gross = ctc - employerPF - gratuity;
-
-            // Simplified in-hand calculation
-            const inHand = (gross * 0.75) / 12; // Approximate
+            const inHand = estimateMonthlyInHand(ctc, basicPercent, isMetro);
 
             offers.push({
                 company,
