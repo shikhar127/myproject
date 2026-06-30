@@ -3,15 +3,23 @@ let ctcBreakdownChart = null;
 let deductionsChart = null;
 
 // ===== Professional Tax Data =====
+// Figures are the typical/top-bracket monthly+annual amount for an above-threshold
+// salaried employee. Karnataka, Tamil Nadu, Kerala and Madhya Pradesh are actually
+// income-slab-based (lower earners pay less or are exempt) — this simplification
+// only reflects the highest slab, same as how the other flat-rate states are modeled.
 const professionalTax = {
     'maharashtra': { monthly: 200, annualExtra: 300, total: 2500 },
-    'karnataka': { monthly: 200, total: 2400 },
+    // Revised by the Karnataka Tax on Professions (Amendment) Act, 2025, effective
+    // 1 Apr 2025: Rs 200/month (Rs 300 in Feb) = Rs 2,500/yr, up from the old Rs 2,400 cap.
+    'karnataka': { monthly: 200, annualExtra: 300, total: 2500 },
     'west-bengal': { monthly: 200, total: 2400 },
     'tamil-nadu': { monthly: 208, total: 2500 },
     'telangana': { monthly: 200, total: 2400 },
     'andhra-pradesh': { monthly: 200, total: 2400 },
     'gujarat': { monthly: 200, total: 2400 },
-    'kerala': { monthly: 200, total: 2400 },
+    // Top slab (>Rs 33,334/month): Rs 208/month for 11 months + Rs 212 in the last
+    // month = Rs 2,500/yr (the statutory state PT cap), not Rs 2,400.
+    'kerala': { monthly: 208, total: 2500 },
     'madhya-pradesh': { monthly: 208, total: 2500 },
     'delhi': { monthly: 0, total: 0 },
     'uttar-pradesh': { monthly: 0, total: 0 },
@@ -87,13 +95,11 @@ function calculateOldRegimeTax(grossSalary, deductions) {
     const taxableIncome = Math.max(0, grossSalary - totalDeductions);
     let tax = calculateTaxBySlabs(taxableIncome, oldTaxSlabs);
 
-    // Apply rebate u/s 87A (for income up to 5L)
+    // Apply rebate u/s 87A (for income up to 5L). Unlike the new regime, the old
+    // regime's 87A rebate has no marginal relief — income even ₹1 over 5L loses the
+    // entire ₹12,500 rebate (a real, longstanding cliff in the law, not a calculator bug).
     if (taxableIncome <= 500000) {
         tax = Math.max(0, tax - 12500);
-    } else {
-        // Marginal relief: just above 5L, tax can't exceed the income over the threshold
-        const marginalRelief = taxableIncome - 500000;
-        tax = Math.min(tax, marginalRelief);
     }
 
     // Add 4% cess
@@ -224,9 +230,11 @@ function calculateSalary() {
         basicWarning.style.display = 'block';
     }
 
-    // Monthly calculations
+    // Monthly calculations. grossMonthly is derived straight from annualGross rather than
+    // summed from the (possibly clamped) components above, so it stays accurate even when
+    // Basic + HRA alone exceed the gross salary (see the Special Allowance clamp above).
     const monthlyVariable = includeVariableMonthly ? variablePay / 12 : 0;
-    const grossMonthly = monthlyBasic + monthlyHRA + monthlySpecial + monthlyVariable;
+    const grossMonthly = (annualGross - variablePay) / 12 + monthlyVariable;
 
     // Employee PF
     const monthlyEmployeePF = calculateEPF(monthlyBasic, 'full');
